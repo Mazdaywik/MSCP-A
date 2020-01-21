@@ -29,13 +29,7 @@ Concat {
 /***********************************************/
 /*
 $ENTRY Go {
- (e.x1) e.x2 =  <InputFormat_0 (e.x1) (e.x2)>;
-}
-
-
-InputFormat_0 {
- () (e.x1) =  'T';
- (t.y1 e.x1) (e.x2) =  <Prefix_12_0 (e.x1) (e.x2)>;
+ (e.x1) e.x2 =  <Prefix_12_0 e.x1>;
 }
 
 
@@ -43,5 +37,5 @@ Prefix_12_0 {
  () (e.x1) =  'T';
  (t.y1 e.x1) (e.x2) =  <Prefix_12_0 (e.x1) (e.x2)>;
 }
-*/
+`*/
 

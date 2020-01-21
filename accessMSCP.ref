@@ -13,6 +13,10 @@ $EXTERN ParametrizeAllEq,SubstituteInClashes,ScreenNegatives;
 ****************************************************************************************************/
 
 
+/*t.NodeType --- это Node для графа развертки программы.
+ SubNode --- для построения усеченного дерева развертки уравнения в словах.
+ */
+
 $ENTRY GetNodeStatus {
     (t.NodeType t.Status t.Name e.Other) = t.Status; 
 }

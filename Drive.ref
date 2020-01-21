@@ -251,6 +251,7 @@ $ENTRY PostProcessPRTC {
 }
 
 FindTightNarrowing {
+/* Проба! */ (e.x) e.y = ;
     (e.Narrowings) = e.Narrowings;
     ()e.Other = ;
     (e.Narrowings)((e.Eqs)(e.Restrs)(e.Asgs)) e.Other
@@ -446,7 +447,7 @@ $ENTRY GenerateNextLevel {
             (((e.equations)
             (<AddTrivRestrs (e.CurrConfig)e.restrictions>)
             (e.assignments))e.OtherConfigs) e.NegExpr
-        ><AAA> : e.NewNegative
+        > : e.NewNegative
             = e.NewChildConf
             <GenerateNextLevel (s.CurrNum)(e.Set) 
                 (Mod <ScreenIfNeeded (e.NewNegative) e.NegExpr>)
@@ -488,7 +489,7 @@ ReplaceFalse {
 
 ScreenIfNeeded {
     (t.x e.1) t.xx e.2 = <ReplaceFalse <ScreenNegatives Init t.x e.1 t.xx e.2>>;
-    (e.1) e.2 = e.1 e.2;
+    (e.1) e.2 = <ReplaceFalse e.1 e.2>;
 }
 
 /*
@@ -1206,12 +1207,12 @@ DeterministicMarkov {
     , <GenRepeatedNegatives (e.Const t.1)(e.Pattern t.PattPart)(e.OtherStructures)> : e.RepeatedNegatives
         = 
         (OR ('D')(((par e t.name1)) to ((var e e.var0) e.Pattern t.PattPart (var e e.var)))e.RepeatedNegatives)
-        <ScreenNegatives Init <NormalizeInequalityBlock ( )
+        <ReplaceFalse <ScreenNegatives Init <NormalizeInequalityBlock ( )
             <GenerateMarkovEndingConditions 
                 (e.RepeatedNegatives)
                 (assign (par e t.name1)((par e t.name1)e.Const))
                 ((var e e.var0) e.Pattern t.PattPart)>
-        >>
+        >>>
         <DeterministicMarkov Single (assign (par e t.name0)((par e t.name2)e.2))(e.OtherStructures)(e.FVs)>;
     Single e.Other (e.FVs) = ;
 }
@@ -1265,7 +1266,7 @@ DeleteEmpty {
 
 $ENTRY TestNegativeBlock {
     t.PRTC
-    , <GetPRTCNegativeInfo t.PRTC> : 
+    , <ReplaceFalse <GetPRTCNegativeInfo t.PRTC>> : /* ReplaceFalse здесь маскирует просочившуюся False где-то в других вызовах! */ 
         {(OR e.Clashes) e.OtherClashes
         , <DeleteEmpty (OR e.Clashes) e.OtherClashes>
             : {
@@ -1293,7 +1294,7 @@ $ENTRY TestNegativeBlock {
                 = <TestNegativeBlock Started (e.NotContr)t.PRTC>;
         };
         e.Other = <TestNegativeBlock Started (e.Other) t.PRTC>;
-    };
+};
     Started (e.ProcessedNegative) t.PRTC (OR (s.PatternType) e.Clashes) e.OtherClashes
     , <GetPRTCRestrs t.PRTC> : e.Restrs
     , <IterateSubstitute (e.Restrs)e.Restrs> : e.SubRestrs
@@ -1560,7 +1561,8 @@ $ENTRY ClashLeft {
         };
 
 /* 9. Если сопоставляются термы, вызываем функцию сопоставления термов. */
-    s.PatternType 0 t.PRTC
+    s.PatternType s.Mode t.PRTC
+    , 0 2 : e.XX1 s.Mode e.XX2
     , <GetPRTCClash t.PRTC> : ((t.1 e.Expr) to (t.2 e.Pattern))
     , <IsTerm t.1> : 'T'
     , <IsTerm t.2> : 'T' 
@@ -1591,17 +1593,21 @@ $ENTRY ClashLeft {
 
 /* 12. Если пошло сопоставление по е-переменной - вызываем функцию сопоставления е-переменных. */
     s.PatternType 2 t.PRTC
-    , <GetPRTCClash t.PRTC> : ((t.1 e.Expr) to ((t.class2 e e.vardata) e.Pattern))
+    , <GetPRTCClash t.PRTC> : ((t.1 e.Expr) to ((t.class2 e e.vardata) t.Next e.Pattern))
+    , <GetAnchorBlock Left ()()(t.class2 e e.vardata) t.Next e.Pattern> : (e.evars)(e.Anchor)(e.RestPattern)
         = 
-        <ClashEvar s.PatternType 2 ((t.1) to ((t.class2 e e.vardata)))((e.Expr) to (e.Pattern)) <DeleteLastPRTCClash t.PRTC>>;
+        <ClashLeftAll s.PatternType 0
+            <Put 1 <ClashEvarNew s.PatternType Left ((t.1) to (e.evars))(e.Anchor)((e.Expr) to (e.RestPattern)) <DeleteLastPRTCClash t.PRTC>>>
+        >;
     s.PatternType 2 t.PRTC
-    , <GetPRTCClash t.PRTC> : ((e.Expr) to (e.Pattern))
+    , <GetPRTCClash t.PRTC> : ((t.1 e.Expr) to (t.2 e.Pattern))
         = 
-        <ClashLeft s.PatternType 3 t.PRTC>;
-    s.PatternType 3 t.PRTC
-    , <GetPRTCClash t.PRTC> : ((e.Expr t.1) to (e.Pattern (t.class2 e e.vardata)))
+        <ClashLeftGeneric s.PatternType 0 ((t.1) to (t.2))((e.Expr) to (e.Pattern)) <DeleteLastPRTCClash t.PRTC>>;
+/*    s.PatternType 3 t.PRTC
+    , <GetPRTCClash t.PRTC> : ((e.Expr t.1) to (e.Pattern t.Next (t.class2 e e.vardata)))
+    , <GetAnchorBlock Right ()() e.Pattern t.Next (t.class2 e e.vardata)> : (e.evars)(e.Anchor)(e.RestPattern)
         = 
-        <ClashEvar s.PatternType 3 ((t.1) to ((t.class2 e e.vardata)))((e.Expr) to (e.Pattern)) <DeleteLastPRTCClash t.PRTC>>;
+        <ClashEvarNew s.PatternType 3 ((t.1) to (e.evars))(e.Anchor)((e.Expr) to (e.RestPattern)) <DeleteLastPRTCClash t.PRTC>>;*/
 
 /* 12. В противном случае вызываем общую функцию сопоставления (слева или справа). */
     s.PatternType 0 t.PRTC
@@ -1614,6 +1620,248 @@ $ENTRY ClashLeft {
         <ClashLeftGeneric s.PatternType 1 ((t.1) to (t.2))((e.Expr) to (e.Pattern)) <DeleteLastPRTCClash t.PRTC>>;
 }
 
+GetAnchorBlock {
+	Left (e.Evars)(/* EMPTY ANCHOR */) (t.class e e.var) e.Rest = <GetAnchorBlock Left (e.Evars (t.class e e.var))(/* EMPTY */) e.Rest>;
+	Right (e.Evars)(/* EMPTY ANCHOR */) e.Rest (t.class e e.var) = <GetAnchorBlock Right ((t.class e e.var) e.Evars)(/* EMPTY */) e.Rest>;
+	Left (e.Evars)(e.Anchor) s.Sym e.Rest = <GetAnchorBlock Left (e.Evars)(e.Anchor s.Sym) e.Rest>;
+	Right (e.Evars)(e.Anchor) e.Rest s.Sym = <GetAnchorBlock Right (e.Evars)(s.Sym e.Anchor) e.Rest>;
+	Left (e.Evars)(e.Anchor) (t.class s e.Name) e.Rest = <GetAnchorBlock Left (e.Evars)(e.Anchor (t.class s e.Name)) e.Rest>;
+	Right (e.Evars)(e.Anchor) e.Rest (t.class s e.Name) = <GetAnchorBlock Right (e.Evars)((t.class s e.Name) e.Anchor) e.Rest>;
+	Left (e.Evars)(e.Anchor) (t.class t e.Name) e.Rest = <GetAnchorBlock Left (e.Evars)(e.Anchor (t.class t e.Name)) e.Rest>;
+	Right (e.Evars)(e.Anchor) e.Rest (t.class t e.Name) = <GetAnchorBlock Right (e.Evars)((t.class t e.Name) e.Anchor) e.Rest>;
+	s.Side (e.Evars)(e.Anchor) e.Other = (e.Evars)(e.Anchor)(e.Other);
+}
+
+TrivialMatching {
+	s.Side (e.Expr)(e.EvarBlock)(e.Anchor)(e.RestPattern)
+	, <NonRepeatedE (e.EvarBlock) <Flatten e.RestPattern>> : True
+	, <NonRepeatedST (<Flatten e.Anchor>)<Flatten e.RestPattern>> : True
+		= <TrivialMatching Started s.Side (e.Expr)(e.EvarBlock)(e.Anchor)(/* EMPTY */)>;
+	Started Left (e.Expr)(e.EvarBlock)(e.Anchor)()
+	, <ClashLeft 'T' 0 <GenerateFreshPRTC (e.Anchor (var e RestExprValue))(e.Expr)>> : t.NewPRTC
+	, <GetPRTCAsgs t.NewPRTC> : e.Asgs
+	, <TrivialPRTC t.NewPRTC> : 'T'
+	, e.Asgs : e.Asg1 (assign (var e RestExprValue) (e.Val)) e.Asg2
+		= (e.Val)(e.Asg1 e.Asg2);
+	Started Right (e.Expr)(e.EvarBlock)(e.Anchor)()
+	, <ClashLeft 'T' 0 <GenerateFreshPRTC ((var e RestExprValue) e.Anchor)(e.Expr)>> : t.NewPRTC
+	, <GetPRTCAsgs t.NewPRTC> : e.Asgs
+	, <TrivialPRTC t.NewPRTC> : 'T'
+	, e.Asgs : e.Asg1 (assign (var e RestExprValue) (e.Val)) e.Asg2
+		= (e.Val)(e.Asg1 e.Asg2);
+	s.Side (e.Expr)(e.EvarBlock)(e.Anchor)(e.RestPattern) = False;
+	Started s.Side (e.Expr)(e.EvarBlock)(e.Anchor)(e.RestPattern) = False;	
+}
+	
+
+NonRepeatedE {
+	(e.Rest0 (t.class e t.name) e.Rest1 (t.class e t.name) e.Rest2) e.Other = False;
+	(e.Rest0 (t.class e t.name) e.Rest1) e.Other (t.class e t.name) e.Rest2 = False;
+	(e.Otherwise1) e.Otherwise2 = True;
+}
+
+Flatten {
+	e.1 (assign t.1 (e.t1)) e.2 = <Flatten e.1 t.1 e.t1 e.2>;
+	e.1 ('*' e.2) e.3 = e.1 <Flatten e.2 e.3>;
+	e.Z = e.Z;
+}
+
+NonRepeatedST {
+	(e.Rest0 (t.class s.sort t.name) e.Rest1) e.Rest2 (t.class s.sort t.name) e.Rest3
+		= False;
+	e.Othewise = True;
+}
+
+GenerateNullAsgs {
+	(t.var e.Other)(e.Asgs) = <GenerateNullAsgs (e.Other)(e.Asgs (assign t.var (/* EMPTY */)))>;
+	(/* EMPTY */)(e.Asgs) = e.Asgs;
+}
+
+GenerateMarkovRules {
+	t.epar (e.Anchor)(e.Pattern)
+	, <NonRepeatedST (e.Anchor)e.Pattern> : True
+	, <ParametrizeExpression var (()()())() e.Anchor> : ((var e t.name1) e.VarAnchor (var e t.name2))
+	, e.Anchor : e.AnchPrefix t.Last 
+		= (OR ('D') ((t.epar e.AnchPrefix) to ((var e t.name1) e.VarAnchor (var e t.name2))));
+	t.epar(e.CrossingAnchor)(e.Pattern) = /* No negative condition */;
+}
+
+GenerateEndMarkRules {
+	(assign t.Epar (t.Epar1))(t.class2 e t.name)e.NullAsgs (e.AllAnchor)(e.Expr)(e.Pattern)t.PRTC = /*STOP HERE */;
+	(assign t.Epar (t.Epar1 e.AnchorPrefix t.Last))(t.class2 e t.name)  e.NullAsgs (e.AnchorSuffix)(e.Expr)(e.Pattern)t.PRTC
+		= <AddAssignments 
+                    <SubstituteNewRestriction 
+                        (assign t.Epar (t.Epar1 e.AnchorPrefix)) 
+                        <PutPRTCClash t.PRTC ((e.Expr) to (t.Last e.AnchorSuffix e.Pattern))>
+                    >
+		    e.NullAsgs (assign (t.class2 e t.name) (t.Epar1))
+                >
+		<GenerateEndMarkRules (assign t.Epar (t.Epar1 e.AnchorPrefix))(t.class2 e t.name)e.NullAsgs (t.Last e.AnchorSuffix)(e.Expr)(e.Pattern)t.PRTC>;
+}
+
+NonNullFVs {
+	(e.Evarlist)e.Terms ((t.class e t.name) e.Pattern)
+	, e.Terms : e.1 (t.class e t.name) e.2 (t.class e t.name) e.3 = False;
+	(t.var e.EvarList)()e.1 t.var e.2 = False;
+	(t.var e.E2 t.var e.E3)() e.Other = False;
+	(e.EvarList t.var e.EvarListEnd)e.1 t.var e.2 = False;
+	(e.E1 t.var e.E2 t.var e.E3) e.Other = False;
+	(t.First e.EvarList) e.OtherList = (<GenerateNullAsgs (e.EvarList)()>)(t.First);
+}
+
+ClashEvarNew {
+    s.PatternType s.Side ((t.Term) to (e.EvarBlock))(e.Anchor)((e.Expr) to (e.Pattern)) t.PRTC
+    , <NonNullFVs (e.EvarBlock)(/*EMPTY*/)<Flatten <GetPRTCAsgs t.PRTC> e.Pattern>(e.Pattern)>
+    : { (e.NullAsgs)((t.class2 e t.name)) /* Cлучай, когда якорь предваряется открытыми переменными только без повторных вхождений. */
+	, t.Term 
+	: { s.Symbol /* Если первый терм в сопоставляемом выражении - символ, есть возможность безусловного сопоставления. */
+          , <TrivialMatching s.Side (t.Term e.Expr)(e.EvarBlock)(e.Anchor)(e.Pattern)>
+	    : { (e.RestExpr)(e.AnchorAssignments) /* Безусловное сопоставление возможно. */
+	           = <AddAssignments 
+		   <PutPRTCClash t.PRTC ((e.RestExpr) to (e.Pattern))>
+                    e.NullAsgs e.AnchorAssignments (assign (t.class2 e t.name) (/* EMPTY */))
+                  >;
+		False
+		, <FreshIndex <ClassIdentifier t.class2 e>> : t.venew
+                  = <AddAssignments
+			<PutPRTCClash t.PRTC ((s.Symbol e.Expr) to (e.Anchor e.Pattern))>
+                        e.NullAsgs (assign (t.class2 e t.name) (/* EMPTY */))
+                    >
+                <AddAssignments 
+		  <PutPRTCClash t.PRTC ((e.Expr) to ((t.class2 e t.venew) e.Anchor e.Pattern))>
+		  e.NullAsgs (assign (t.class2 e t.name) (s.Symbol (t.class2 e t.venew)))
+                >;
+
+};
+	  (call e.call) /* Первый терм выражения - вызов. Возникает вопрос о его непустоте. */
+		= <ProcessNewSimpleCallCondition 
+                ('T')
+                (AreEqual ('F')((call e.call))(/* EMPTY */))
+                t.PRTC
+                >;
+	(t.class e t.parname) /* Первый терм выражения - е-параметр. Последовательно порождаются варианты сопоставлений, в которых он вбирает всё меньшую часть якоря. 
+				Первое из этих сопоставлений - выделенное, добавляет Марковские неравенства. Остальные неравенств не добавляют. */
+	, <FreshIndex <ClassIdentifier t.class e>> : t.penew1
+	, <FreshIndex <ClassIdentifier t.class e>> : t.penew2
+	, <FreshIndex <ClassIdentifier t.class2 e>> : t.venew
+	, <FreshIndex <ClassIdentifier t.class2 e>> : t.venewNeg1
+	, <FreshIndex <ClassIdentifier t.class2 e>> : t.venewNeg2
+	, <SubstituteNewRestriction (assign (t.class e t.parname) ((t.class e t.penew1) e.Anchor (t.class e t.penew2))) 
+                        <PutPRTCClash t.PRTC (((t.class e t.penew2) e.Expr) to (e.Pattern))>
+                    > : t.NewPRTC
+	, <GetPRTCRestrs t.NewPRTC> : e.1 (assign (t.class e t.parname) ((t.class e t.penew1) e.ParametrAnchor (t.class e t.penew2)))
+                = 
+		<AddPRTCNegativeInfo
+		<GenerateMarkovRules (t.class e t.penew1)((t.class e t.penew1) e.ParametrAnchor (t.class e t.penew2))(e.Pattern)>
+		<AddAssignments 
+                    t.NewPRTC
+		    e.NullAsgs (assign (t.class2 e t.name) ((t.class e t.penew1)))
+                >>
+		<GenerateEndMarkRules 
+			(assign (t.class e t.parname)((t.class e t.penew1) e.ParametrAnchor))
+			(t.class2 e t.name)e.NullAsgs( )(e.Expr)(e.Pattern) t.PRTC
+		>
+                <AddAssignments 
+			<PutPRTCClash t.PRTC ((e.Expr) to ((t.class2 e t.venew) e.Anchor e.Pattern))>
+			e.NullAsgs (assign (t.class2 e t.name) ((t.class e t.parname)(t.class2 e t.venew)))
+                >;
+	(t.class s.objtype t.parname)
+	, par var weval : e.xx1 t.class e.xx2
+	, <TrivialMatching s.Side (t.Term e.Expr)(e.EvarBlock)(e.Anchor)(e.Pattern)>
+	: { (e.RestExpr)(e.AnchorAssignments) /* Безусловное сопоставление возможно. */
+	           = <AddAssignments 
+		   <PutPRTCClash t.PRTC ((e.RestExpr) to (e.Pattern))>
+                    e.NullAsgs e.AnchorAssignments (assign (t.class2 e t.name) (/* EMPTY */))
+                  >;
+		False
+		, <FreshIndex <ClassIdentifier t.class2 e>> : t.venew
+                  = <AddAssignments
+			<PutPRTCClash t.PRTC ((t.Term e.Expr) to (e.Anchor e.Pattern))>
+                        e.NullAsgs (assign (t.class2 e t.name) (/* EMPTY */))
+                    >
+                <AddAssignments 
+		  <PutPRTCClash t.PRTC ((e.Expr) to ((t.class2 e t.venew) e.Anchor e.Pattern))>
+		  e.NullAsgs (assign (t.class2 e t.name) (t.Term (t.class2 e t.venew)))
+                >;
+		};
+	('*' e.InBr)
+            , e.Anchor
+		: { ('*' e.AnchBr)e.AnchOut
+		   , <FreshIndex <ClassIdentifier t.class2 e>> : t.venew
+			=
+			<AddAssignments 
+				<PutPRTCClash <PutPRTCClash t.PRTC ((e.Expr) to (e.AnchOut e.Pattern))>((e.InBr) to (e.AnchBr))>
+				e.NullAsgs (assign (t.class2 e t.name)(/* EMPTY */))
+			>
+			<AddAssignments 
+				<PutPRTCClash t.PRTC ((e.Expr) to ((t.class2 e t.venew) e.Anchor e.Pattern))>
+				e.NullAsgs (assign (t.class2 e t.name) (t.Term (t.class2 e t.venew)))
+			>;
+		(t.class2 t t.brname) e.AnchRest
+		, <FreshIndex <ClassIdentifier t.class2 e>> : t.venew
+			=	
+			<AddAssignments 
+				<PutPRTCClash t.PRTC ((e.Expr) to (e.AnchRest e.Pattern))>
+				e.NullAsgs (assign (t.class2 e t.name)(/* EMPTY */))(assign (t.class2 t t.brname)(t.Term))
+			>
+			<AddAssignments 
+				<PutPRTCClash t.PRTC ((e.Expr) to ((t.class2 e t.venew) e.Anchor e.Pattern))>
+				e.NullAsgs (assign (t.class2 e t.name) (t.Term (t.class2 e t.venew)))
+			>;
+		e.OtherAnchor
+		, <FreshIndex <ClassIdentifier t.class2 e>> : t.venew
+                = <AddAssignments 
+		  <PutPRTCClash t.PRTC ((e.Expr) to ((t.class2 e t.venew) e.Anchor e.Pattern))>
+		  e.NullAsgs (assign (t.class2 e t.name) (t.Term (t.class2 e t.venew)))
+                >;
+		};
+        };
+	False
+	, t.Term 
+	: {(call e.call) 
+		= <ProcessNewSimpleCallCondition 
+                  ('T')
+                  (AreEqual ('F')((call e.call))(/* EMPTY */))
+                  t.PRTC
+                >; 
+	  (t.class e t.parname)
+	  , e.EvarBlock : (t.class2 e t.name) e.OtherEvars
+	  , <FreshIndex <ClassIdentifier t.class2 e>> : t.venew
+	  , <FreshIndex <ClassIdentifier t.class e>> : t.penew1
+	  , <FreshIndex <ClassIdentifier t.class e>> : t.penew2
+		= <AddAssignments 
+			<SubstituteNewRestriction 
+				(assign (t.class e t.parname) ((t.class e t.penew1) (t.class e t.penew2))) 
+				 <PutPRTCClash t.PRTC (((t.class e t.penew2) e.Expr) to (e.OtherEvars e.Anchor e.Pattern))>
+			>
+			(assign (t.class2 e t.name)((t.class e t.penew1)))
+		>
+		<AddAssignments 
+			<PutPRTCClash t.PRTC ((e.Expr) to ((t.class2 e t.venew) e.OtherEvars e.Anchor e.Pattern))>
+			(assign (t.class2 e t.name) (t.Term (t.class2 e t.venew)))
+		>;
+	  t.NotCallNotEPar
+	  , e.EvarBlock : (t.class2 e t.name) e.OtherEvars
+	  , <FreshIndex <ClassIdentifier t.class2 e>> : t.venew
+		= <AddAssignments 
+			<PutPRTCClash t.PRTC ((t.Term e.Expr) to (e.OtherEvars e.Anchor e.Pattern))>
+			(assign (t.class2 e t.name)(/* EMPTY */))
+		>
+		<AddAssignments 
+			<PutPRTCClash t.PRTC ((e.Expr) to ((t.class2 e t.venew) e.OtherEvars e.Anchor e.Pattern))>
+			(assign (t.class2 e t.name) (t.Term (t.class2 e t.venew)))
+		>;
+	  };
+	};
+}
+
+
+
+ClashLeftAll {
+    s.PType s.Mode = ;
+    s.PType s.Mode t.PRTC e.Other
+        = <ClashLeft s.PType s.Mode t.PRTC><ClashLeftAll s.PType s.Mode e.Other>;
+}
 
 ResetMode {
     0 = 0;
@@ -1751,12 +1999,12 @@ ClashEvar {
                 >
             >
         >
-        <ClashLeft s.PatternType <Sub s.Mode 2>
+/*        <ClashLeft s.PatternType <Sub s.Mode 2>
             <AddNewAssignment 
                 <CheckNewAssignment (assign (t.class2 e e.vardata) ((t.class e e.pardata)))(e.assignments)>
                 <PutPRTCClash t.PRTC ((e.Expr) to (e.Pattern))>
             >
-        >
+        >*/
         <ClashLeft s.PatternType <Sub s.Mode 2>
             <AddNewAssignment 
                 <CheckNewAssignment (assign (t.class2 e e.vardata) 
@@ -1837,6 +2085,33 @@ $ENTRY ShuffleMode {
     3 t.1 e.1 = e.1 t.1;
 }
 
+FindCommutingEquation {
+	t.var s.Sym (e.1 (AreEqual (s.Log)(t.var s.Sym)(s.Sym t.var)) e.2) = True;
+	t.var s.Sym (e.1 (AreEqual (s.Log)(s.Sym t.var)(t.var s.Sym)) e.2) = True;
+	t.var s.Sym (e.OtherEqs) = False;
+}
+
+CommutesWithSymbol {
+	s.Sym (t.class e t.name) e.Seq (e.Eqs)
+	, <FindCommutingEquation (t.class e t.name) s.Sym (e.Eqs)> : True
+	 = <CommutesWithSymbol s.Sym e.Seq (e.Eqs)>;
+	s.Sym /* EMPTY */ (e.Eqs) = True;
+	s.Sym e.OtherSeq (e.Eqs) = False;
+}
+
+ExtractSuccessors {
+	s.Mode (e.Prefix (t.class e t.name) s.Sym e.Suffix)(e.Eqs)
+	, 0 2 : e.x s.Mode e.xx
+	, <FindCommutingEquation (t.class e t.name) s.Sym (e.Eqs)> : True
+	, <CommutesWithSymbol s.Sym e.Prefix (e.Eqs)> : True
+		= s.Sym e.Prefix (t.class e t.name) e.Suffix;
+	1 (e.Prefix s.Sym (t.class e t.name) e.Suffix)(e.Eqs)
+	, <FindCommutingEquation (t.class e t.name) s.Sym (e.Eqs)> : True
+	, <CommutesWithSymbol s.Sym e.Suffix (e.Eqs)> : True
+		=  e.Prefix (t.class e t.name) e.Suffix s.Sym;
+	s.Mode (e.OtherExpr)(e.Eqs) = False;
+}
+
 /*
     Функция, продолжающая работу ClashLeft на непустых e.Pattern и e.Expr, содержащих хотя бы с одной
    стороны неизвестную произвольной длины (параметр, переменную е-типа) либо вызов функции. 
@@ -1849,21 +2124,32 @@ ClashLeftGeneric {
    и сужение е-параметра до пустой строки.
 */
     s.PatternType s.Mode (((t.class e e.pardata)) to (s.Sym))((e.Expr) to (e.Pattern)) t.PRTC
-    , <FreshIndex <ClassIdentifier t.class e>> : t.enew
-        = <ClashLeft s.PatternType s.Mode
-            <SubstituteNewRestriction 
-                (assign (t.class e e.pardata) (<ShuffleMode s.Mode s.Sym (t.class e t.enew)>))				
-                <PutPRTCClash t.PRTC
-                    ((<ShuffleMode s.Mode (t.class e t.enew)e.Expr>) to (e.Pattern))>
-            >
-        >
-        <ClashLeft s.PatternType s.Mode
-            <SubstituteNewRestriction 
-                (assign (t.class e e.pardata) ())
-                <PutPRTCClash t.PRTC ((e.Expr) to (<ShuffleMode s.Mode s.Sym e.Pattern>))>
-            >	
-        >;
-
+    , <ExtractSuccessors s.Mode ((t.class e e.pardata) e.Expr)(<GetPRTCGenEqs t.PRTC>)> 
+    : {
+	    s.Sym e.NewExpr
+		, 0 2 : e.x s.Mode e.xx
+		= <ClashLeft s.PatternType s.Mode <PutPRTCClash t.PRTC ((e.NewExpr) to (e.Pattern))>>;
+	    e.NewExpr s.Sym 
+		, 1 3 : e.x s.Mode e.xx
+		= <ClashLeft s.PatternType s.Mode <PutPRTCClash t.PRTC ((e.NewExpr) to (e.Pattern))>>;
+	    False
+		, <FreshIndex <ClassIdentifier t.class e>> : t.enew
+		= <ClashLeft s.PatternType s.Mode
+		    <SubstituteNewRestriction 
+			(assign (t.class e e.pardata) (<ShuffleMode s.Mode s.Sym (t.class e t.enew)>))				
+			<PutPRTCClash t.PRTC
+			    ((<ShuffleMode s.Mode (t.class e t.enew)e.Expr>) to (e.Pattern))>
+		    >
+		>
+		<ClashLeft s.PatternType s.Mode
+		    <SubstituteNewRestriction 
+			(assign (t.class e e.pardata) ())
+			<PutPRTCClash t.PRTC ((e.Expr) to (<ShuffleMode s.Mode s.Sym e.Pattern>))>
+		    >	
+		>;
+		s.OtherSym e.NewExpr = <ClashLeft s.PatternType 0 <NullifyPRTC>>;
+	    
+	};
 /*
     2. s-переменная - e-параметр.
    Два случая - сужение е-параметра до s-параметра + е-параметра (а s-переменной - до s-параметра)
@@ -1944,6 +2230,25 @@ ClashLeftGeneric {
                 t.PRTC
             >
         >;
+/* 6а-1. Выражение в скобках - вызов, сопоставление слева, справа - е-переменная. Делим на два случая. */
+    s.PatternType 0 (((call e.call)) to (('*'e.Pat1)))((e.Expr) to (e.Pat2)) t.PRTC
+    , e.Pat2 : e.FreePattern (t.class2 e t.name)
+    , <FreshIndex <ClassIdentifier weval e>> : t.wevalnew
+        = <ClashLeft s.PatternType 0
+            <ProcessNewSimpleCallCondition 
+                ('T')
+                (AreEqual ('F')((call e.call))()) 
+                <PutPRTCClash t.PRTC ((e.Expr) to (('*'e.Pat1) e.Pat2))>>
+        >
+        <ProcessDelayedCallsInClash s.PatternType
+            <ProcessNewSimpleCallCondition
+                ('F')
+                (AreEqual ('F')((call e.call))(('*'e.Pat1)(weval e t.wevalnew)))
+                t.PRTC
+            >
+            (AreEqual ('T')((weval e t.wevalnew) e.Expr)(e.Pat2))
+        >;
+/*
 /* 6а. Выражение в скобках - вызов. Если шло сопоставление слева, вызываем сопоставление справа. */
     s.PatternType 0 (((call e.call)) to (('*'e.Pat1)))((e.Expr) to (e.Pat2)) t.PRTC
         =
@@ -1969,6 +2274,26 @@ ClashLeftGeneric {
                 t.PRTC
             >
             (AreEqual ('T')(e.Expr(weval e t.wevalnew))(e.Pat2))
+        >;
+/* 7а-1. терм (термовый параметр либо символ) - вызов, сопоставление слева, справа е-переменная: два варианта - пустой либо терм+е-неизвестная. */
+    s.PatternType 0 (((call e.call)) to (t.PattPart))((e.Expr) to (e.Pattern)) t.PRTC
+    , e.Pattern : e.FreePattern (t.class2 e t.name)
+    , <IsTerm t.PattPart> : 'T'
+    , <FreshIndex <ClassIdentifier weval e>> : t.wevalnew 
+        = <ClashLeft s.PatternType 0 
+            <ProcessNewSimpleCallCondition 
+                ('T')
+                (AreEqual ('F')((call e.call))()) 
+                <PutPRTCClash t.PRTC ((e.Expr) to (t.PattPart e.Pattern))>
+            >
+        >
+        <ProcessDelayedCallsInClash s.PatternType
+            <ProcessNewSimpleCallCondition
+                ('F')
+                (AreEqual ('F')((call e.call))(t.PattPart(weval e t.wevalnew)))
+                t.PRTC
+            >
+            (AreEqual ('T')((weval e t.wevalnew) e.Expr)(e.Pattern))
         >;
 /*
     7а. терм (термовый параметр либо символ) - вызов: два варианта - пустой либо терм+е-неизвестная. Если шло
@@ -2073,10 +2398,10 @@ ProcessNewSimpleCallCondition {
 AddAssignments {
     t.PRTC (assign e.asg) e.otherasgs
     , <GetPRTCAsgs t.PRTC> : e.assignments 
-        =  <AddNewAssignment 
+        =  <AddAssignments <AddNewAssignment 
                 <CheckNewAssignment (assign e.asg)(e.assignments)>
                 t.PRTC
-            >;
+            > e.otherasgs>;
     t.PRTC = t.PRTC;
 } 
 
@@ -2091,8 +2416,19 @@ AddAssignments {
 
 AddNewAssignment {
 /* 1. Подстановка единственна - добавляем в блок. */
+    (assign (t.class e e.vardata)(e.Expr)) t.PRTC
+    , <GetPRTCAsgs t.PRTC> : e.assignments
+    , <ReplacePRTCAsgs 
+        t.PRTC 
+        (assign (t.class e e.vardata)(e.Expr))
+        <Substitute ((assign (t.class e e.vardata)(e.Expr)))e.assignments>
+    > : t.PRTC0 
+        = <SubstInAllEqs ((assign (t.class e e.vardata)(e.Expr))) t.PRTC0>;
     (assign (t.class e.vardata)(e.Expr)) t.PRTC
-    , <PutPRTCAsg t.PRTC (assign (t.class e.vardata)(e.Expr))> : t.PRTC0 
+    , <PutPRTCAsg 
+        t.PRTC 
+        (assign (t.class e.vardata)(e.Expr))
+        > : t.PRTC0 
         = t.PRTC0;
     (assign (t.class e.vardata)t.Expr or t.Expr) t.PRTC
         = t.PRTC;
@@ -2132,7 +2468,7 @@ AddNewAssignment {
         >;
 /* 5. Общий случай - порождаем из повторной подстановки равенство. */
     (assign (t.class e.vardata)(e.Expr1) or (e.Expr2)) t.PRTC 
-        =   <PutPRTCNewEq t.PRTC (AreEqual ('F')(e.Expr1) (e.Expr2))>;
+        =   <AAA><PutPRTCNewEq t.PRTC (AreEqual ('F')(e.Expr1) (e.Expr2))>;
 }
 
 /*

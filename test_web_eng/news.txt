@@ -1,4 +1,17 @@
-======================
+2020
+
+Новые тесты:
+
+RefalMachine.ref
+test_sumcomm.ref
+weqs_int_base_new.ref
+weqs_int_base_1.ref
+weqs_int_base_2.ref
+weqs_int_base_3.ref
+
+В остаточной программе для test_openvars.ref добавилась одна ветка альтернативы.
+В остаточных программах для test_prefix.ref, test_prefixA.ref, test_ABPlusPrefix.ref исчезла одна лишняя развертка.
+
 2019.01.15
 
 Добавлены тесты:
@@ -9,7 +22,6 @@ test_AB_tail.ref
 test_ABmoved.ref
 test_KMPtest.ref
 
-======================
 2018
 
 Добавлены тесты:
@@ -21,8 +33,7 @@ test_FibWord.ref
 test_Script0.ref
 test_Script3.ref
 
-======================
-20/12/2017
+2017
 
 Новые тесты:
 

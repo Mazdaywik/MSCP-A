@@ -102,12 +102,11 @@ $ENTRY ParametrizeExpression {
 		 = <ParametrizeExpression s.Mode
                         (e.OldParList)(e.Parametrized t.weval) e.NP
 		>;		
-	s.Mode (e.OldParList)(e.Parametrized)(t.sort s.type t.name) e.NP,
-        <IndivIndex s.Mode <FreshIndex <Explode s.Mode><Explode s.type>'_ind'>> : t.index,
-        (assign (t.sort s.type t.name)((s.Mode s.type t.index))) : t.newasg,
-        e.OldParList : (e.ParAsgs)(e.VarAsgs)(e.CallAsgs)
-        ,
-        t.sort :
+	s.Mode (e.OldParList)(e.Parametrized)(t.sort s.type t.name) e.NP
+	, <IndivIndex s.Mode <FreshIndex <Explode s.Mode><Explode s.type>'_ind'>> : t.index
+	, (assign (t.sort s.type t.name)((s.Mode s.type t.index))) : t.newasg
+	, e.OldParList : (e.ParAsgs)(e.VarAsgs)(e.CallAsgs)
+        , t.sort :
             {   par = <ParametrizeExpression s.Mode
                         ((e.ParAsgs t.newasg)(e.VarAsgs)(e.CallAsgs))
                         (e.Parametrized (s.Mode s.type t.index)) 
@@ -210,6 +209,7 @@ $ENTRY ImplyNEqsNew {
 }
 
 FullScreen {
+	(False) e.Z = 'T';
     (t.1 e.x) e.Z
     , <ScreenNegatives Base (e.Z) t.1> : 
         {e.Z 

@@ -14,7 +14,7 @@
 /***********************************************/
 
 $ENTRY Go {
- e.Text =  <Test <Check <RpHC <RpLb e.Text>>>>;
+ e.Text =  <Test <Interpret <RpHC <RpLb e.Text>>>>;
 }
 
 

@@ -27,17 +27,30 @@
 @call mscpdo test_web_eng\test_eqlemmas0.ref
 @call mscpdo test_web_eng\test_Fabr.ref
 @call mscpdo test_web_eng\test_unused.ref
-@call mscpdo test_web_eng\rsd_test_unused.ref
 @call mscpdo test_web_eng\test_FibWord.ref
 @call mscpdo test_web_eng\rsd_test_FibWord.ref
 @call mscpdo test_web_eng\test_AB_tail.ref
 @call mscpdo test_web_eng\test_ABmoved.ref
 @call mscpdo test_web_eng\test_KMPtest.ref
+@call mscpdo test_web_eng\test_sumcomm.ref
 @call mscpdo test_web_eng\test_scriptComplex.ref
-@echo The following test takes 8 minutes.
+@call mscpdo test_web_eng\weqs_int_base_new.ref
+@echo Please wait.
+@echo The next example takes to compute about 260 sec on a machine with 8 GB memory, processor AMD Ryzen 5 2500U, 2GHz, OS Windows 10. 
 @call mscpdo test_web_eng\test_finiteletter.ref
+@echo The next example takes to compute about 14 sec on a machine with 8 GB memory, processor AMD Ryzen 5 2500U, 2GHz, OS Windows 10. 
 @call mscpdo test_web_eng\rsd_test_finiteletter.ref
-
+@echo Please wait.
+@echo The next example takes to compute about 62 sec on a machine with 8 GB memory, processor AMD Ryzen 5 2500U, 2GHz, OS Windows 10. 
+@call mscpdo test_web_eng\RefalMachine.ref
+@echo The next example takes to compute about 10 sec on a machine with 8 GB memory, processor AMD Ryzen 5 2500U, 2GHz, OS Windows 10. 
+@call mscpdo test_web_eng\weqs_int_base_1.ref
+@echo Please wait.
+@echo The next example takes to compute about 980 sec on a machine with 8 GB memory, processor AMD Ryzen 5 2500U, 2GHz, OS Windows 10. 
+@call mscpdo test_web_eng\weqs_int_base_2.ref
+@echo Please wait.
+@echo The next example takes to compute about 4550 sec on a machine with 8 GB memory, processor AMD Ryzen 5 2500U, 2GHz, OS Windows 10. 
+@call mscpdo test_web_eng\weqs_int_base_3.ref
 
 
 

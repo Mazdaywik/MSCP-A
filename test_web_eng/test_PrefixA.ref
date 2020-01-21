@@ -29,14 +29,7 @@ Concat {
 /***********************************************/
 /*
 $ENTRY Go {
- (e.x1) e.x2 =  <InputFormat_0 (e.x1) (e.x2)>;
-}
-
-
-InputFormat_0 {
- () (e.x1) =  'T';
- ('A' e.x1) (e.x2) =  <Prefix_124_0 (e.x1) (e.x2)>;
- ('B' e.x1) (e.x2) =  'F';
+ (e.x1) e.x2 =  <Prefix_124_0 e.x1>;
 }
 
 

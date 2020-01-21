@@ -2,7 +2,7 @@
  A sligthly changed example test_strangeprefix.ref. 
  The concatenation e.x++e.y is done starting from the end of the concatenated string e.y.
  Then we prepend the prefix 'AB' to e.x++e.y.
- The string e.x may be a prefix of 'AB'++e.x++e.y, iff it belongs to the language ['A'| EMPTY] ++ ['BA']^n.
+ The string e.x may be a prefix of 'AB'++e.x++e.y, iff it belongs to the language  ['AB']^n++['A'| EMPTY].
 */
 
 /***********************************************/
@@ -32,65 +32,23 @@ Concat {
 /*          the residual program               */
 /***********************************************/
 /*
-
 $ENTRY Go {
- (e.x1) e.x2 =  <InputFormat_0 (e.x1) (e.x2)>;
+ (e.x1) e.x2 =  <Prefix_0 (e.x1) (e.x2) ()>;
 }
 
 
-InputFormat_0 {
+Prefix_124_0 {
  () (e.x1) =  'T';
- ('A' e.x1) () =  <Prefix_123_0 e.x1>;
- ('B' e.x1) () =  'F';
- (s.z1 e.x1) (e.x2 s.z1) =  <Prefix_0 s.z1 (e.x1) (e.x2) ()>;
- ('A' e.x1) (e.x2 s.z1) =  <Prefix_1 (e.x1) (e.x2) () s.z1>;
- ('B' e.x1) (e.x2 s.z1) =  <Prefix_2 (e.x1) (e.x2) () s.z1>;
-}
-
-
-Prefix_123_0 {
- =  'T';
- 'B' =  'T';
- 'BA' e.x1 =  <Prefix_123_0 e.x1>;
- 'BB' e.x1 =  'F';
- 'A' e.x1 =  'F';
-}
-
-
-Prefix_123_1 {
- () (e.x1) =  'T';
- ('B') (e.x1) =  'T';
- ('BA' e.x1) (e.x2) =  <Prefix_123_1 (e.x1) (e.x2)>;
- ('BB' e.x1) (e.x2) =  'F';
- ('A' e.x1) (e.x2) =  'F';
+ ('A') (e.x1) =  'T';
+ ('AB' e.x1) (e.x2) =  <Prefix_124_0 (e.x1) (e.x2)>;
+ ('AA' e.x1) (e.x2) =  'F';
+ ('B' e.x1) (e.x2) =  'F';
 }
 
 
 Prefix_0 {
- 'A' (e.x1) () (e.x2) =  <Prefix_123_1 (e.x1) (e.x2)>;
- 'B' (e.x1) () (e.x2) =  'F';
- s.z1 (e.x1) (e.x2 s.z2) (e.x3) =  <Prefix_0 s.z1 (e.x1) (e.x2) (s.z2 e.x3)>;
-}
-
-
-Prefix_1 {
- (e.x1) () (e.x2) s.z1 =  <Prefix_123_2 (e.x1) (e.x2) s.z1>;
- (e.x1) (e.x2 s.z1) (e.x3) s.z2 =  <Prefix_1 (e.x1) (e.x2) (s.z1 e.x3) s.z2>;
-}
-
-
-Prefix_123_2 {
- () (e.x1) s.z1 =  'T';
- ('B') (e.x1) s.z1 =  'T';
- ('BA' e.x1) (e.x2) s.z1 =  <Prefix_123_2 (e.x1) (e.x2) s.z1>;
- ('BB' e.x1) (e.x2) s.z1 =  'F';
- ('A' e.x1) (e.x2) s.z1 =  'F';
-}
-
-
-Prefix_2 {
- (e.x1) () (e.x2) s.z1 =  'F';
- (e.x1) (e.x2 s.z1) (e.x3) s.z2 =  <Prefix_2 (e.x1) (e.x2) (s.z1 e.x3) s.z2>;
+ (e.x1) () (e.x2) =  <Prefix_124_0 (e.x1) (e.x2)>;
+ (e.x1) (e.x2 s.z1) (e.x3) =  <Prefix_0 (e.x1) (e.x2) (s.z1 e.x3)>;
 }
 
 */

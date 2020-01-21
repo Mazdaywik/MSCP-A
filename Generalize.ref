@@ -607,6 +607,41 @@ NegativeLinear {
     t.par e.Other = /* EMPTY */;
 }
 
+StringTypisation {
+    (e.CurrGram)(e.UpperGramm)(e.LowerGramm)(assign (par e t.name)(e.Expr1)(e.Expr2)) e.OtherMGUs
+    , <LogAnd <StringType (e.UpperGramm)e.Expr1><StringType (e.LowerGramm)e.Expr2>>
+    : {
+        'T' = <StringTypisation (e.CurrGram (String (par e t.name)))(e.UpperGramm)(e.LowerGramm)e.OtherMGUs>;
+        'F' = <StringTypisation (e.CurrGram)(e.UpperGramm)(e.LowerGramm)e.OtherMGUs>;
+    };
+    (e.CurrGram)(e.UpperGramm)(e.LowerGramm) /* NO MORE MGUs */ = e.CurrGram; /*Output syntax: (String (par e t.name))* */
+}
+
+StringType {
+    (e.Grammar)s.X e.Y = <StringType (e.Grammar)e.Y>;
+    (e.Grammar)(par s t.name) e.Y = <StringType (e.Grammar)e.Y>;
+    (e.Grammar)(par e t.name) e.Y
+    , e.Grammar
+    : {
+        e.G1 (String (par e t.name)) e.G2 = <StringType (e.Grammar) e.Y>;
+        e.NotContainingStringType = 'F';
+    };
+    (e.Grammar) /* EMPTY */ = 'T';
+    (e.Grammar) t.Other e.Y = 'F';
+}
+
+/* Переменная называется плавающей, если:
+ 1. Это t-переменная, не встречающаяся больше нигде в образцах данного блока, соседствующая с неповторной е-переменной. 
+ 2. Это s-переменная, не встречающаяся больше нигде в образцах данного блока, соседствующая с неповторной е-переменной,
+    причем условие (не)-сопоставления с образцом ставится для параметра типа строка. 
+    
+    Положение таких переменных нормализуется, то есть со стороны, отличной от той, где они соседствуют со свободной е-переменной,
+    добавляется еще одна е-переменная.
+    Пример: e.x s.y нормализуется до e.x s.y e.z.
+    s.y1 e.x s.y2 A - до e.x1 s.y1 e.x s.y2 e.x2 A.
+    s.y s.z e.x s.z - до s.y s.z e.x s.z.
+    */
+
 /* (assign (e.pardata)(e.Val1)(e.Val2))^* => (AreEqual ('F')(e.1)(e.2)) */
 GenerateNewEquations {
     (e.GenEqs)(e.GenNeqs)(e.UpperEqs)(e.LowerEqs)(e.Pattern) e.MGUs1 (assign (par e t.name)()(e.Expr))e.MGUs2 
